@@ -60,4 +60,7 @@ dependencies {
     implementation("com.hivemq:hivemq-mqtt-client:1.3.0")
     implementation(libs.firebase.database)
     implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
+
+
+
 }
