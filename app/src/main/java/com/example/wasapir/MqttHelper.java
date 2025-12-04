@@ -67,7 +67,8 @@ public class MqttHelper {
             // Ignorar si el mensaje viene de mí mismo
             if (!senderUid.equals(myUid)) {
                 if (listener != null) {
-                    listener.onMessageReceived(content);
+                    listener.onMessageReceived(senderUid + ":" + content);
+
                 }
             }
         } else {
