@@ -56,9 +56,12 @@ public class ContactsFragment extends Fragment {
                 contactsList.clear(); // limpiar lista antes de recargar
                 for (DataSnapshot userSnap : snapshot.getChildren()) {
                     String uid = userSnap.getKey();
-                    String name = userSnap.child("name").getValue(String.class);
-                    if (uid != null && name != null) {
-                        contactsList.add(new User(uid, name));
+                    String nickname = userSnap.child("nickname").getValue(String.class);
+
+                    // Si no hay nickname, mostramos el UID como fallback
+                    if (uid != null) {
+                        String displayName = (nickname != null && !nickname.isEmpty()) ? nickname : uid;
+                        contactsList.add(new User(uid, displayName));
                     }
                 }
                 adapter.notifyDataSetChanged(); // refrescar RecyclerView
