@@ -1,19 +1,37 @@
 plugins {
     id("com.android.application")
+    id("com.google.gms.google-services")
 }
 
 android {
     namespace = "com.example.wasapir"
     compileSdk = 36
 
+
     defaultConfig {
-        applicationId = "com.wasapiBeta"
+        applicationId = "com.wasapir"
         minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+
+    packaging {
+        resources {
+            excludes += setOf(
+                "META-INF/INDEX.LIST",
+                "META-INF/io.netty.versions.properties",
+                "META-INF/LICENSE",
+                "META-INF/LICENSE.txt",
+                "META-INF/NOTICE",
+                "META-INF/NOTICE.txt",
+                "META-INF/DEPENDENCIES"
+            )
+        }
+    }
+
+
 
     buildTypes {
         release {
@@ -39,5 +57,7 @@ dependencies {
 
     implementation("com.google.firebase:firebase-auth:22.3.0")
     implementation("org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5")
-    implementation("org.eclipse.paho:org.eclipse.paho.android.service:1.1.1")
+    implementation("com.hivemq:hivemq-mqtt-client:1.3.0")
+    implementation(libs.firebase.database)
+    implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
 }

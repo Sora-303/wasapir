@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "1040556339830",
-    "project_id": "wasapibeta",
-    "storage_bucket": "wasapibeta.firebasestorage.app"
+    "project_number": "1069360673966",
+    "project_id": "wasapir",
+    "storage_bucket": "wasapir.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1040556339830:android:167098537dee886db82557",
+        "mobilesdk_app_id": "1:1069360673966:android:c60667ea621a783996a93f",
         "android_client_info": {
-          "package_name": "com.wasapiBeta"
+          "package_name": "com.wasapir"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyB15bQSy65Ai9CSzn73FcqDfUP9qVN9WKc"
+          "current_key": "AIzaSyD4ijuVN-tAbVe6f1Rlpt_UaXld_t3y03E"
         }
       ],
       "services": {

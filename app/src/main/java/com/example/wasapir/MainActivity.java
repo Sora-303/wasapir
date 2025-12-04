@@ -11,6 +11,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -44,6 +46,15 @@ public class MainActivity extends AppCompatActivity {
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
                             FirebaseUser user = auth.getCurrentUser();
+
+                            if (user != null) {
+                                // 🔧 Guardar el usuario en Firebase Database
+                                DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
+                                User userObj = new User(user.getUid(), user.getEmail());
+                                usersRef.child(user.getUid()).setValue(userObj);
+                            }
+
+
                             Toast.makeText(MainActivity.this, "Bienvenido: " + user.getEmail(), Toast.LENGTH_SHORT).show();
                             startActivity(new Intent(MainActivity.this, HomeActivity.class));
                             finish();

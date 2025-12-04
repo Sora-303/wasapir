@@ -11,6 +11,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -51,6 +53,13 @@ public class RegisterActivity extends AppCompatActivity {
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
                             FirebaseUser user = auth.getCurrentUser();
+
+                            if (user != null) {
+                                DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
+                                User userObj = new User(user.getUid(), user.getEmail());
+                                usersRef.child(user.getUid()).setValue(userObj);
+                            }
+
                             Toast.makeText(RegisterActivity.this, "Cuenta creada: " + user.getEmail(), Toast.LENGTH_SHORT).show();
                             startActivity(new Intent(RegisterActivity.this, HomeActivity.class));
                             finish();

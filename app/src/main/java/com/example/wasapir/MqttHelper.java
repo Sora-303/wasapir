@@ -1,97 +1,98 @@
 package com.example.wasapir;
 
-import android.content.Context;
 import android.util.Log;
 
-import org.eclipse.paho.android.service.MqttAndroidClient;
-import org.eclipse.paho.client.mqttv3.IMqttActionListener;
-import org.eclipse.paho.client.mqttv3.IMqttToken;
-import org.eclipse.paho.client.mqttv3.MqttCallback;
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
+import com.google.firebase.auth.FirebaseAuth;
+import com.hivemq.client.mqtt.MqttClient;
+import com.hivemq.client.mqtt.mqtt3.Mqtt3AsyncClient;
+import com.hivemq.client.mqtt.mqtt3.message.publish.Mqtt3Publish;
+
+import java.nio.charset.StandardCharsets;
 
 public class MqttHelper {
 
-    private MqttAndroidClient client;
+    private Mqtt3AsyncClient client;
     private OnMessageReceivedListener listener;
 
-    public void connect(Context context) {
-        String serverUri = "ssl://c21a6fa242bf41c9952f4b876fe7dcb8.s1.eu.hivemq.cloud:8883";
-        String clientId = "wasapiBeta_" + System.currentTimeMillis();
+    // Guardamos el UID del usuario actual
+    private final String myUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-        client = new MqttAndroidClient(context, serverUri, clientId);
+    public void connect() {
+        String serverUri = "c21a6fa242bf41c9952f4b876fe7dcb8.s1.eu.hivemq.cloud";
+        int port = 8883;
 
-        MqttConnectOptions options = new MqttConnectOptions();
-        options.setUserName("Foxito");
-        options.setPassword("3312qQtt".toCharArray());
-        options.setCleanSession(true);
-        options.setConnectionTimeout(10);
-        options.setKeepAliveInterval(60);
-        options.setAutomaticReconnect(true);
+        client = MqttClient.builder()
+                .useMqttVersion3()
+                .identifier("wasapiBeta_" + System.currentTimeMillis())
+                .serverHost(serverUri)
+                .serverPort(port)
+                .sslWithDefaultConfig()
+                .buildAsync();
 
-        try {
-            IMqttToken token = client.connect(options);
-            token.setActionCallback(new IMqttActionListener() {
-                @Override
-                public void onSuccess(IMqttToken asyncActionToken) {
-                    Log.d("MQTT", "✅ Conectado a HiveMQ Cloud");
-                    subscribe("chat/general");
-                }
-
-                @Override
-                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                    Log.e("MQTT", "❌ Error de conexión: " + exception.getMessage());
-                }
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        client.connectWith()
+                .simpleAuth()
+                .username("Foxito")
+                .password("3312qQtt".getBytes(StandardCharsets.UTF_8))
+                .applySimpleAuth()
+                .send()
+                .whenComplete((connAck, throwable) -> {
+                    if (throwable == null) {
+                        Log.d("MQTT", "✅ Conectado a HiveMQ Cloud");
+                        // ✅ Ya no nos suscribimos aquí
+                        // La suscripción se hace en ChatActivity al canal correcto
+                    } else {
+                        Log.e("MQTT", "❌ Error de conexión: " + throwable.getMessage());
+                    }
+                });
     }
 
     public void subscribe(String topic) {
-        try {
-            client.subscribe(topic, 1);
-            client.setCallback(new MqttCallback() {
-                @Override
-                public void connectionLost(Throwable cause) {
-                    Log.e("MQTT", "⚠️ Conexión perdida");
-                }
+        client.subscribeWith()
+                .topicFilter(topic)
+                .qos(com.hivemq.client.mqtt.datatypes.MqttQos.AT_LEAST_ONCE)
+                .callback(this::handleMessage)
+                .send();
+    }
 
-                @Override
-                public void messageArrived(String topic, MqttMessage message) {
-                    String msg = new String(message.getPayload());
-                    Log.d("MQTT", "📩 Mensaje recibido: " + msg);
+    private void handleMessage(Mqtt3Publish publish) {
+        String msg = new String(publish.getPayloadAsBytes(), StandardCharsets.UTF_8);
+        Log.d("MQTT", "📩 Mensaje recibido: " + msg);
 
-                    if (listener != null) {
-                        listener.onMessageReceived(msg);
-                    }
-                }
+        // Esperamos formato "uid:mensaje"
+        if (msg.contains(":")) {
+            String[] parts = msg.split(":", 2);
+            String senderUid = parts[0];
+            String content = parts[1];
 
-                @Override
-                public void deliveryComplete(org.eclipse.paho.client.mqttv3.IMqttDeliveryToken token) {
-                    Log.d("MQTT", "✅ Mensaje entregado");
+            // Ignorar si el mensaje viene de mí mismo
+            if (!senderUid.equals(myUid)) {
+                if (listener != null) {
+                    listener.onMessageReceived(content);
                 }
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
+            }
+        } else {
+            // Mensaje sin formato, lo pasamos tal cual
+            if (listener != null) {
+                listener.onMessageReceived(msg);
+            }
         }
     }
+
     public void publish(String topic, String msg) {
-        try {
-            MqttMessage message = new MqttMessage();
-            message.setPayload(msg.getBytes());
-            client.publish(topic, message);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        // Publicamos con el UID incluido
+        String formattedMsg = myUid + ":" + msg;
+
+        client.publishWith()
+                .topic(topic)
+                .payload(formattedMsg.getBytes(StandardCharsets.UTF_8))
+                .qos(com.hivemq.client.mqtt.datatypes.MqttQos.AT_LEAST_ONCE)
+                .send();
     }
 
-    // Setter del listener
     public void setOnMessageReceivedListener(OnMessageReceivedListener listener) {
         this.listener = listener;
     }
 
-    // Interfaz
     public interface OnMessageReceivedListener {
         void onMessageReceived(String message);
     }

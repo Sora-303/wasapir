@@ -37,15 +37,18 @@ public class ChatActivity extends AppCompatActivity {
         messagesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         messagesRecyclerView.setAdapter(adapter);
 
-        // Inicializar MQTT
+        // Inicializar MQTT con HiveMQ
         mqttHelper = new MqttHelper();
-        mqttHelper.connect(this);
+        mqttHelper.connect();
 
         // Obtener UIDs
         String myUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         String contactUid = getIntent().getStringExtra("contactUid");
 
-        topic = "chat/" + myUid + "_" + contactUid;
+        // 🔧 Usamos el método para generar un tópico único ordenado
+        topic = "chat/" + getSortedTopic(myUid, contactUid);
+
+        // Suscribirse al tópico
         mqttHelper.subscribe(topic);
 
         // Enviar mensaje
@@ -67,5 +70,10 @@ public class ChatActivity extends AppCompatActivity {
                 messagesRecyclerView.scrollToPosition(messagesList.size() - 1);
             });
         });
+    }
+
+    // 🔧 Método para ordenar UIDs y generar un canal único
+    private String getSortedTopic(String uid1, String uid2) {
+        return uid1.compareTo(uid2) < 0 ? uid1 + "_" + uid2 : uid2 + "_" + uid1;
     }
 }
