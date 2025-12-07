@@ -92,12 +92,12 @@ public class ChatActivity extends AppCompatActivity {
         });
     }
 
-    // 🔧 Método para ordenar UIDs y generar un canal único
+    //  metodo para ordenar uids y metodos unicos
     private String getSortedTopic(String uid1, String uid2) {
         return uid1.compareTo(uid2) < 0 ? uid1 + "_" + uid2 : uid2 + "_" + uid1;
     }
 
-    // 🔧 Cargar historial desde Firebase
+    // 🔧 cargar historial desde Firebase
     private void loadMessagesFromFirebase() {
         DatabaseReference messagesRef = dbRef.child(conversationId).child("messages");
         messagesRef.addValueEventListener(new ValueEventListener() {

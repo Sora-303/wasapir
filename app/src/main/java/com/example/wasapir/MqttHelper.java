@@ -38,8 +38,7 @@ public class MqttHelper {
                 .whenComplete((connAck, throwable) -> {
                     if (throwable == null) {
                         Log.d("MQTT", "✅ Conectado a HiveMQ Cloud");
-                        // ✅ Ya no nos suscribimos aquí
-                        // La suscripción se hace en ChatActivity al canal correcto
+
                     } else {
                         Log.e("MQTT", "❌ Error de conexión: " + throwable.getMessage());
                     }
@@ -58,7 +57,7 @@ public class MqttHelper {
         String msg = new String(publish.getPayloadAsBytes(), StandardCharsets.UTF_8);
         Log.d("MQTT", "📩 Mensaje recibido: " + msg);
 
-        // Esperamos formato "uid:mensaje"
+        // se espera formato "uid:mensaje"
         if (msg.contains(":")) {
             String[] parts = msg.split(":", 2);
             String senderUid = parts[0];
